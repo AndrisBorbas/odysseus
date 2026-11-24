@@ -20,22 +20,27 @@ services:
     # - e.g. ghcr.io/odysseus-dev/odysseus:1.0.2-7c8070f (X.Y.Z-<sha>) - since
     # :latest and bare :X.Y.Z tags move on every main push.
     image: ${ODYSSEUS_IMAGE:-ghcr.io/odysseus-dev/odysseus:latest}
-    build: .
+    # build: .
     ports:
       - "${APP_BIND:-127.0.0.1}:${APP_PORT:-7011}:7000"
     volumes:
-      - ${APP_DATA_DIR:-./data}:/app/data:z
-      - ${APP_LOGS_DIR:-./logs}:/app/logs:z
+      # - ${APP_DATA_DIR:-./data}:/app/data:z
+      # - ${APP_LOGS_DIR:-./logs}:/app/logs:z
       # Cookbook remote-server SSH identity. Odysseus can generate a key here;
       # add the shown public key to each remote server's authorized_keys.
-      - ${APP_DATA_DIR:-./data}/ssh:/app/.ssh:z
+      # - ${APP_DATA_DIR:-./data}/ssh:/app/.ssh:z
       # Cookbook local model cache. Inside Docker, "Local" means the Odysseus
       # container, so persist its HuggingFace cache under ./data/huggingface.
-      - ${APP_DATA_DIR:-./data}/huggingface:/app/.cache/huggingface:z
+      # - ${APP_DATA_DIR:-./data}/huggingface:/app/.cache/huggingface:z
       # Cookbook-installed Python CLIs/packages (vLLM, llama-cpp-python, etc.)
       # land under /app/.local for the odysseus user. Persist them so a
       # container recreate does not silently remove installed serve engines.
-      - ${APP_DATA_DIR:-./data}/local:/app/.local:z
+      # - ${APP_DATA_DIR:-./data}/local:/app/.local:z
+      - /mnt/data/odysseus/data:/app/data:z
+      - /mnt/data/odysseus/logs:/app/logs:z
+      - /mnt/data/odysseus/data/ssh:/app/.ssh:z
+      - /mnt/data/odysseus/data/huggingface:/app/.cache/huggingface:z
+      - /mnt/data/odysseus/data/local:/app/.local:z
     extra_hosts:
       # Lets the container reach local services on the Docker host, including
       # Ollama at http://host.docker.internal:11434.
@@ -138,7 +143,8 @@ services:
       # It declares no VOLUME, so anything written outside a mount lives in the
       # container's writable layer and dies with it. /chroma/chroma is where
       # pre-1.0 images kept the store; mounting there now catches nothing.
-      - chromadb-data:/data
+      # - chromadb-data:/data
+      - /mnt/data/odysseus/chromadb:/data
     environment:
       - ANONYMIZED_TELEMETRY=FALSE
     restart: unless-stopped
@@ -170,7 +176,8 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - searxng-data:/etc/searxng
+      # - searxng-data:/etc/searxng
+      - /mnt/data/odysseus/searxng:/etc/searxng
       - ./config/searxng/settings.yml:/tmp/searxng-settings.yml.template:ro,z
       - ./scripts/migrate_searxng_settings.py:/tmp/migrate-searxng-settings.py:ro,z
     environment:
@@ -204,12 +211,8 @@ services:
     ports:
       - "${NTFY_BIND:-127.0.0.1}:8091:80"
     volumes:
-      - ntfy-cache:/var/cache/ntfy
+      # - ntfy-cache:/var/cache/ntfy
+      - /mnt/data/odysseus/ntfy:/var/cache/ntfy
     environment:
       - NTFY_BASE_URL=${NTFY_BASE_URL:-http://localhost:8091}
     restart: unless-stopped
-
-volumes:
-  searxng-data:
-  chromadb-data:
-  ntfy-cache:
