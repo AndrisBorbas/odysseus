@@ -133,6 +133,9 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    networks:
+      - default
+      - ollama-net
 
   chromadb:
     image: docker.io/chromadb/chroma:1.5.9@sha256:1e0b73a187a28757c572acba508c46f48c9e8b0acaf5c20e6d95cdedce1acdf6
