@@ -219,3 +219,7 @@ services:
     environment:
       - NTFY_BASE_URL=${NTFY_BASE_URL:-http://localhost:8091}
     restart: unless-stopped
+
+networks:
+  ollama-net:
+    external: true
